@@ -1,0 +1,28 @@
+[package]
+name = "jj-analyze"
+version = "0.1.0"
+edition = "2024"
+authors = ["Scott Taylor <scott11x8@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Analyze a revset and display a tree showing how it will be evaluated"
+readme = "README.md"
+homepage = "https://github.com/scott2000/jj-analyze"
+repository = "https://github.com/scott2000/jj-analyze"
+keywords = ["jj"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+anyhow = "1.0.100"
+async-trait = "0.1.89"
+chrono = "0.4.42"
+clap = "4.5.54"
+clap_complete = { version = "4.5.65", features = ["unstable-dynamic"] }
+colored = "3.0.0"
+dunce = "1.0.5"
+futures = "0.3.31"
+indexmap = "2.13.0"
+itertools = "0.14.0"
+jj-cli = "0.37.0"
+jj-lib = "0.37.0"
+serde = "1.0.228"
+tokio = "1.49.0"
