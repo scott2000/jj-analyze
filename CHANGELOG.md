@@ -11,6 +11,7 @@ Compatible with `jj` 0.37.0.
 
 ### Added
 
+* New `--from-config <KEY>` option to load revset from `revsets.<KEY>` config.
 * New `-O`/`--no-optimize` flag to disable revset optimizations.
 * Extra `-r` argument is now allowed for consistency with `jj`.
 

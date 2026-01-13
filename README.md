@@ -128,13 +128,18 @@ implementation, analysis results may not be accurate.
 To make the output easier to read, nested union, intersection, and coalesce
 operations are flattened.
 
-Usage: jj-analyze [OPTIONS] <REVSET|-r <REVSET>>
+Usage: jj-analyze [OPTIONS] <REVSET|-r <REVSET>|--from-config <KEY>>
 
 Arguments:
   [REVSET]
           A revset to analyze
 
 Options:
+      --from-config <KEY>
+          Load a revset from the `[revsets]` config section
+
+          For instance, pass `--from-config log` to use `revsets.log`.
+
       --collapse <ALIAS>
           Collapses the provided revset alias, hiding it from the output
 

@@ -67,6 +67,20 @@ const STYLES: Styles = Styles::styled()
 #[command(version, about, styles = STYLES)]
 #[command(group(clap::ArgGroup::new("revset").required(true)))]
 struct Args {
+    /// A revset to analyze
+    #[arg(group = "revset", value_name = "REVSET")]
+    revset_pos: Option<String>,
+
+    // Hidden `-r` flag
+    #[arg(short = 'r', group = "revset", hide = true, value_name = "REVSET")]
+    revset_opt: Option<String>,
+
+    /// Load a revset from the `[revsets]` config section
+    ///
+    /// For instance, pass `--from-config log` to use `revsets.log`.
+    #[arg(long = "from-config", group = "revset", value_name = "KEY")]
+    revset_from_config: Option<String>,
+
     /// Collapses the provided revset alias, hiding it from the output
     #[arg(long, value_name = "ALIAS")]
     collapse: Vec<String>,
@@ -116,26 +130,12 @@ struct Args {
     /// Path to repository to load revset aliases from
     #[arg(short = 'R', long, value_name = "PATH")]
     repository: Option<PathBuf>,
-
-    /// A revset to analyze
-    #[arg(group = "revset", value_name = "REVSET")]
-    revset_pos: Option<String>,
-
-    // Hidden `-r` flag
-    #[arg(short = 'r', group = "revset", hide = true, value_name = "REVSET")]
-    revset_opt: Option<String>,
 }
 
 fn main() -> anyhow::Result<()> {
     CompleteEnv::with_factory(Args::command).complete();
 
     let args = Args::parse();
-
-    let input = args
-        .revset_pos
-        .as_deref()
-        .or(args.revset_opt.as_deref())
-        .context("Revision argument should be provided")?;
 
     let cwd = env::current_dir()
         .and_then(dunce::canonicalize)
@@ -146,6 +146,17 @@ fn main() -> anyhow::Result<()> {
         .unwrap_or_else(|| find_workspace_dir(&cwd));
     let settings =
         load_settings(workspace_dir, !args.no_config).context("Failed to load settings")?;
+
+    let input = args
+        .revset_pos
+        .or(args.revset_opt)
+        .or(args
+            .revset_from_config
+            .map(|key| settings.get_string(["revsets", key.as_str()]))
+            .transpose()
+            .context("Failed to find revset from config")?)
+        .context("Revision argument should be provided")?;
+
     let ui = Ui::with_config(settings.config()).map_err(|err| err.error)?;
     if let Some(color) = args.color {
         // If color argument is provided directly, use it
@@ -213,7 +224,12 @@ fn main() -> anyhow::Result<()> {
         workspace: Some(workspace_context),
     };
     let mut reference_map = ReferenceMap::new();
-    let expr = parse::parse(input, &parse_context, &mut reference_map, !args.no_optimize)?;
+    let expr = parse::parse(
+        &input,
+        &parse_context,
+        &mut reference_map,
+        !args.no_optimize,
+    )?;
     pretty_print(&expr, args.context, !args.no_analyze);
     Ok(())
 }
