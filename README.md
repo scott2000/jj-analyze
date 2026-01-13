@@ -9,8 +9,8 @@ expensive operations.
 
 `jj-analyze` can be installed using `cargo install`:
 
-```shell
-$ cargo install --locked jj-analyze
+```sh
+cargo install --locked jj-analyze
 ```
 
 ## Compatibility
@@ -26,7 +26,7 @@ it should be backwards compatible with other recent versions.
 We can look at the default log revset as an example. For simplicity, I have
 omitted `present()` since it does not affect the output.
 
-```shell
+```console
 $ jj-analyze '@ | ancestors(immutable_heads().., 2) | trunk()'
 Union [
   @
@@ -62,7 +62,7 @@ Often, revset performance problems are caused due to eager evaluation of large
 revsets. For instance, the revset `latest(empty())` can be slow in large repos.
 We can analyze it to see the problem:
 
-```shell
+```console
 $ jj-analyze 'latest(empty())'
 Latest {
   count: 1
@@ -88,7 +88,7 @@ For cases like this, a common fix is to intersect the predicate with another
 revset to restrict the range of commits that needs to be searched. Usually
 `mutable()` is a good choice:
 
-```shell
+```console
 $ jj-analyze 'latest(empty() & mutable())'
 Latest {
   count: 1
@@ -122,7 +122,7 @@ only compare the "heads", since these will be the most recently added commits.
 
 Therefore, we can add `heads()` to our revset get an even more efficient version:
 
-```shell
+```console
 $ jj-analyze 'latest(heads(empty() & mutable()))'
 Latest {
   count: 1
@@ -145,7 +145,7 @@ revision that matches the `empty()` predicate.
 
 ## Usage
 
-```shell
+```console
 $ jj-analyze --help
 Analyze a revset and display a tree showing how it will be evaluated
 
