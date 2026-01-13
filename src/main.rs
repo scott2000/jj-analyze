@@ -101,6 +101,10 @@ struct Args {
     #[arg(short = 'C', long)]
     no_config: bool,
 
+    /// Disable revset optimizations
+    #[arg(short = 'O', long)]
+    no_optimize: bool,
+
     /// Path to repository to load revset aliases from
     #[arg(short = 'R', long, value_name = "PATH")]
     repository: Option<PathBuf>,
@@ -191,7 +195,12 @@ fn main() -> anyhow::Result<()> {
         workspace: Some(workspace_context),
     };
     let mut reference_map = ReferenceMap::new();
-    let expr = parse::parse(&args.input, &parse_context, &mut reference_map)?;
+    let expr = parse::parse(
+        &args.input,
+        &parse_context,
+        &mut reference_map,
+        !args.no_optimize,
+    )?;
     pretty_print(&expr, args.context, !args.no_analyze);
     Ok(())
 }

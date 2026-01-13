@@ -58,6 +58,7 @@ pub fn parse<'a>(
     input: &str,
     context: &RevsetParseContext,
     reference_map: &'a mut ReferenceMap,
+    optimize: bool,
 ) -> anyhow::Result<Expr<'a>> {
     let dummy_backend: Box<dyn Backend> = Box::new(DummyBackend {
         root_commit_id: reference_map.insert(ResolvedReference::root()),
@@ -87,9 +88,11 @@ pub fn parse<'a>(
     let mut diagnostics = RevsetDiagnostics::new();
     let parsed =
         revset::parse(&mut diagnostics, input, context).context("Failed to parse revset")?;
-    let resolved = resolve_user_expressions(&parsed, None, reference_map);
-    let optimized = revset::optimize(resolved);
-    let backend = optimized.to_backend_expression(&dummy_repo);
+    let mut resolved = resolve_user_expressions(&parsed, None, reference_map);
+    if optimize {
+        resolved = revset::optimize(resolved);
+    }
+    let backend = resolved.to_backend_expression(&dummy_repo);
     Ok(Expr::parse(backend, reference_map))
 }
 

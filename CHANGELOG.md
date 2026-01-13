@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Compatible with `jj` 0.37.0.
 
+### Added
+
+* New `-O`/`--no-optimize` flag to disable revset optimizations.
+
 ### Changed
 
 * Updated field order to match `jj` revset engine internals.

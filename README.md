@@ -208,6 +208,9 @@ Options:
   -C, --no-config
           Disable loading user-defined revset aliases
 
+  -O, --no-optimize
+          Disable revset optimizations
+
   -R, --repository <PATH>
           Path to repository to load revset aliases from
 
