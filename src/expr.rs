@@ -12,7 +12,7 @@ use jj_lib::revset::RevsetFilterPredicate;
 use crate::parse::ReferenceMap;
 use crate::print::format_date_pattern;
 use crate::print::format_fileset_expression;
-use crate::print::format_range_with_label;
+use crate::print::format_range;
 use crate::print::format_string_expression;
 use crate::tree::AnalyzeContext;
 use crate::tree::AnalyzeCost;
@@ -156,7 +156,7 @@ impl AnalyzeTree for Predicate<'_> {
                     children: vec![],
                 },
                 inner => TreeEntry {
-                    name: "NotPredicate".into(),
+                    name: "NotIn".into(),
                     context: AnalyzeContext::Predicate,
                     children: vec![Child {
                         label: None,
@@ -166,7 +166,7 @@ impl AnalyzeTree for Predicate<'_> {
                 },
             },
             Self::Union(exprs) => TreeEntry {
-                name: "UnionPredicate".into(),
+                name: "Union".into(),
                 context: AnalyzeContext::Predicate,
                 children: exprs
                     .iter()
@@ -178,7 +178,7 @@ impl AnalyzeTree for Predicate<'_> {
                     .collect(),
             },
             Self::Intersection(exprs) => TreeEntry {
-                name: "IntersectionPredicate".into(),
+                name: "Intersection".into(),
                 context: AnalyzeContext::Predicate,
                 children: exprs
                     .iter()
@@ -207,9 +207,7 @@ fn filter_to_string(filter: &RevsetFilterPredicate) -> Cow<'static, str> {
             if *range == (2..u32::MAX) {
                 "merges()".into()
             } else {
-                format_range_with_label("ParentCount", range, PARENTS_RANGE_FULL)
-                    .unwrap_or_default()
-                    .into()
+                format!("parent_count({})", format_range(range, PARENTS_RANGE_FULL)).into()
             }
         }
         RevsetFilterPredicate::Description(pattern) => {
@@ -247,7 +245,7 @@ fn filter_to_string(filter: &RevsetFilterPredicate) -> Cow<'static, str> {
         .into(),
         RevsetFilterPredicate::HasConflict => "conflicts()".into(),
         RevsetFilterPredicate::Signed => "signed()".into(),
-        RevsetFilterPredicate::Extension(ext) => format!("Extension({ext:?})").into(),
+        RevsetFilterPredicate::Extension(ext) => format!("extension({ext:?})").into(),
     }
 }
 
@@ -639,7 +637,7 @@ impl AnalyzeTree for Expr<'_> {
                 }],
             },
             Self::HasSize { candidates, count } => TreeEntry {
-                name: "ExpectHasSize".into(),
+                name: "HasSize".into(),
                 context: AnalyzeContext::Eager,
                 children: vec![
                     Child {
@@ -698,7 +696,7 @@ impl AnalyzeTree for Expr<'_> {
                 candidates,
                 predicate,
             } => TreeEntry {
-                name: "Filter".into(),
+                name: "FilterWithin".into(),
                 context,
                 children: vec![
                     Child {

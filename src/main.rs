@@ -55,7 +55,7 @@ enum ColorMode {
 /// different index implementation, analysis results may not be accurate.
 ///
 /// To make the output easier to read, nested union, intersection, and coalesce
-/// operations are flattened, and some operations have been renamed for clarity.
+/// operations are flattened.
 #[derive(clap::Parser, Debug)]
 #[command(version, about)]
 struct Args {

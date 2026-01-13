@@ -37,7 +37,7 @@
       <g class="input-bg"></g>
       <text class="container fg7"><tspan xml:space="preserve" x="10" y="14" class="output"><tspan class="bold fg12">Latest</tspan><tspan class="dimmed"> {</tspan>
 </tspan><tspan xml:space="preserve" x="10" y="32" class="output">  <tspan class="dimmed">count:</tspan> 1
-</tspan><tspan xml:space="preserve" x="10" y="50" class="output">  <tspan class="dimmed">candidates:</tspan> <tspan class="bold fg12">Filter</tspan><tspan class="dimmed"> {</tspan>
+</tspan><tspan xml:space="preserve" x="10" y="50" class="output">  <tspan class="dimmed">candidates:</tspan> <tspan class="bold fg12">FilterWithin</tspan><tspan class="dimmed"> {</tspan>
 </tspan><tspan xml:space="preserve" x="10" y="68" class="output">    <tspan class="dimmed">candidates:</tspan> <tspan class="bold fg9">(EXPENSIVE)</tspan> <tspan class="bold fg12">Ancestors</tspan><tspan class="dimmed"> {</tspan>
 </tspan><tspan xml:space="preserve" x="10" y="86" class="output">      <tspan class="dimmed">heads:</tspan> visible_heads()
 </tspan><tspan xml:space="preserve" x="10" y="104" class="output">    <tspan class="dimmed">}</tspan>

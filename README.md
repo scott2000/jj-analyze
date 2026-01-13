@@ -105,10 +105,10 @@ jj-analyze 'latest(heads(empty() & mutable()))'
 ![Example Output](img/performance-3.svg)
 
 Since we added `heads()`, the revset optimizer was able to combine the `Heads`
-operation with the `Filter` and `Range` operations to produce a `HeadsRange`
-operation. Similarly to before, `jj` can still stop scanning when it reaches an
-immutable revision, but now it can also stop scanning early when it finds a
-revision that matches the `empty()` predicate.
+operation with the `FilterWithin` and `Range` operations to produce a
+`HeadsRange` operation. Similarly to before, `jj` can still stop scanning when
+it reaches an immutable revision, but now it can also stop scanning early when
+it finds a revision that matches the `empty()` predicate.
 
 ## Usage
 
@@ -126,7 +126,7 @@ well as possible. If you use a custom build of `jj` which uses a different index
 implementation, analysis results may not be accurate.
 
 To make the output easier to read, nested union, intersection, and coalesce
-operations are flattened, and some operations have been renamed for clarity.
+operations are flattened.
 
 Usage: jj-analyze [OPTIONS] <REVSET>
 

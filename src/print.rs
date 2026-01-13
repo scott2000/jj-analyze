@@ -166,42 +166,19 @@ pub fn format_date_pattern(pattern: &DatePattern) -> String {
     }
 }
 
-pub fn format_range_with_label<T>(
-    label: &str,
-    range: &Range<T>,
-    full_range: Range<T>,
-) -> Option<String>
+pub fn format_range<T>(range: &Range<T>, full_range: Range<T>) -> String
 where
     T: Copy + Eq + From<u32> + ops::Sub<Output = T> + fmt::Display,
 {
     if range.start == full_range.start && range.end == full_range.end {
-        None
+        String::new()
     } else if range.start == range.end {
-        Some(format!("{label} always out of range"))
+        "empty range".to_owned()
     } else if range.start == range.end - T::from(1u32) {
-        Some(format!("{label} == {}", range.start))
+        range.start.to_string()
     } else if range.end == full_range.end {
-        Some(format!("{label} >= {}", range.start))
-    } else if range.start == full_range.start {
-        Some(format!("{label} < {}", range.end))
+        format!("{}..", range.start)
     } else {
-        Some(format!("{} <= {label} < {}", range.start, range.end))
-    }
-}
-
-pub fn format_range<T>(range: &Range<T>, full_range: Range<T>) -> Option<String>
-where
-    T: Copy + Eq + From<u32> + ops::Sub<Output = T> + fmt::Display,
-{
-    if range.start == full_range.start && range.end == full_range.end {
-        None
-    } else if range.start == range.end {
-        Some("empty range".to_owned())
-    } else if range.start == range.end - T::from(1u32) {
-        Some(range.start.to_string())
-    } else if range.end == full_range.end {
-        Some(format!("{}..", range.start))
-    } else {
-        Some(format!("{}..{}", range.start, range.end))
+        format!("{}..{}", range.start, range.end)
     }
 }

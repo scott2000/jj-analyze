@@ -82,7 +82,7 @@ impl AnalyzeTree for usize {
 impl AnalyzeTree for Range<u64> {
     fn entry(&self, _context: AnalyzeContext) -> TreeEntry<'_> {
         TreeEntry {
-            name: format_range(self, 0..u64::MAX).unwrap_or_default().into(),
+            name: format_range(self, 0..u64::MAX).into(),
             context: AnalyzeContext::Resolved,
             children: vec![],
         }
@@ -96,7 +96,7 @@ impl AnalyzeTree for Range<u64> {
 impl AnalyzeTree for Range<u32> {
     fn entry(&self, _context: AnalyzeContext) -> TreeEntry<'_> {
         TreeEntry {
-            name: format_range(self, 0..u32::MAX).unwrap_or_default().into(),
+            name: format_range(self, 0..u32::MAX).into(),
             context: AnalyzeContext::Resolved,
             children: vec![],
         }
