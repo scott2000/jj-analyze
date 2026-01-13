@@ -29,9 +29,9 @@ fn print_helper(tree: &dyn AnalyzeTree, context: AnalyzeContext, depth: usize, a
     }
     let name = if analyze {
         match entry.context {
-            AnalyzeContext::Eager => entry.name.blue(),
-            AnalyzeContext::Lazy => entry.name.cyan(),
-            AnalyzeContext::Predicate => entry.name.magenta(),
+            AnalyzeContext::Eager => entry.name.bright_blue(),
+            AnalyzeContext::Lazy => entry.name.bright_cyan(),
+            AnalyzeContext::Predicate => entry.name.bright_magenta(),
             AnalyzeContext::Resolved => entry.name.normal(),
         }
     } else if entry.context != AnalyzeContext::Resolved {

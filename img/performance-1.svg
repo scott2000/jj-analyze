@@ -1,0 +1,49 @@
+<!-- Created with term-transcript v0.4.0 (https://github.com/slowli/term-transcript) -->
+<svg viewBox="0 0 720 182" width="720" height="182" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .container {
+      font: 14px SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+      line-height: 18px;
+    }
+    .input,.output,.output-bg {
+      white-space: pre;
+    }
+    .input-bg { fill: #fff; fill-opacity: 0.1; }
+    .output-bg { user-select: none; text-rendering: geometricPrecision; stroke-width: 0.1; }
+    .bold,.prompt { font-weight: 600; }
+    .italic { font-style: italic; }
+    .underline { text-decoration: underline; }
+    .dimmed { fill-opacity: 0.7; }
+    .hard-br { font-size: 16px; fill-opacity: 0.8; user-select: none; }
+    .fg0 { fill: #1c1c1c; } .output-bg .fg0 { stroke: #1c1c1c; }
+    .fg1 { fill: #ff005b; } .output-bg .fg1 { stroke: #ff005b; }
+    .fg2 { fill: #cee318; } .output-bg .fg2 { stroke: #cee318; }
+    .fg3 { fill: #ffe755; } .output-bg .fg3 { stroke: #ffe755; }
+    .fg4 { fill: #048ac7; } .output-bg .fg4 { stroke: #048ac7; }
+    .fg5 { fill: #833c9f; } .output-bg .fg5 { stroke: #833c9f; }
+    .fg6 { fill: #0ac1cd; } .output-bg .fg6 { stroke: #0ac1cd; }
+    .fg7 { fill: #e5e5e5; } .output-bg .fg7 { stroke: #e5e5e5; }
+    .fg8 { fill: #666666; } .output-bg .fg8 { stroke: #666666; }
+    .fg9 { fill: #ff00a0; } .output-bg .fg9 { stroke: #ff00a0; }
+    .fg10 { fill: #ccff00; } .output-bg .fg10 { stroke: #ccff00; }
+    .fg11 { fill: #ff9f00; } .output-bg .fg11 { stroke: #ff9f00; }
+    .fg12 { fill: #48c6ff; } .output-bg .fg12 { stroke: #48c6ff; }
+    .fg13 { fill: #be67e1; } .output-bg .fg13 { stroke: #be67e1; }
+    .fg14 { fill: #63e7f0; } .output-bg .fg14 { stroke: #63e7f0; }
+    .fg15 { fill: #f3f3f3; } .output-bg .fg15 { stroke: #f3f3f3; }
+  </style>
+  <rect width="100%" height="100%" y="0" rx="4.5" style="fill: #1c1c1c;" />
+    <svg x="0" y="10" width="720" height="162" viewBox="0 0 720 162">
+      <g class="input-bg"></g>
+      <text class="container fg7"><tspan xml:space="preserve" x="10" y="14" class="output"><tspan class="bold fg12">Latest</tspan><tspan class="dimmed"> {</tspan>
+</tspan><tspan xml:space="preserve" x="10" y="32" class="output">  <tspan class="dimmed">count:</tspan> 1
+</tspan><tspan xml:space="preserve" x="10" y="50" class="output">  <tspan class="dimmed">candidates:</tspan> <tspan class="bold fg12">Filter</tspan><tspan class="dimmed"> {</tspan>
+</tspan><tspan xml:space="preserve" x="10" y="68" class="output">    <tspan class="dimmed">candidates:</tspan> <tspan class="bold fg9">(EXPENSIVE)</tspan> <tspan class="bold fg12">Ancestors</tspan><tspan class="dimmed"> {</tspan>
+</tspan><tspan xml:space="preserve" x="10" y="86" class="output">      <tspan class="dimmed">heads:</tspan> visible_heads()
+</tspan><tspan xml:space="preserve" x="10" y="104" class="output">    <tspan class="dimmed">}</tspan>
+</tspan><tspan xml:space="preserve" x="10" y="122" class="output">    <tspan class="dimmed">predicate:</tspan> <tspan class="fg13">empty()</tspan>
+</tspan><tspan xml:space="preserve" x="10" y="140" class="output">  <tspan class="dimmed">}</tspan>
+</tspan><tspan xml:space="preserve" x="10" y="158" class="output"><tspan class="dimmed">}</tspan>
+</tspan></text>
+    </svg>
+</svg>

@@ -15,6 +15,7 @@ Compatible with `jj` 0.37.0.
 
 ### Changed
 
+* Updated colors to make output easier to read.
 * Updated field order to match `jj` revset engine internals.
 
 ## [0.1.0] - 2026-01-12

@@ -10,6 +10,7 @@ homepage = "https://github.com/scott2000/jj-analyze"
 repository = "https://github.com/scott2000/jj-analyze"
 keywords = ["jj"]
 categories = ["command-line-utilities"]
+exclude = ["img/", ".*"]
 
 [dependencies]
 anyhow = "1.0.100"

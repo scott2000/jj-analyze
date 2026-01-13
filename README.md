@@ -20,26 +20,14 @@ it should be backwards compatible with other recent versions.
 
 ## Example
 
-*Note: These examples may be easier to read when run locally since
-`jj-analyze` supports colored output.*
-
 We can look at the default log revset as an example. For simplicity, I have
 omitted `present()` since it does not affect the output.
 
-```console
-$ jj-analyze '@ | ancestors(immutable_heads().., 2) | trunk()'
-Union [
-  @
-  Ancestors {
-    generation: 0..2
-    heads: Range {
-      roots: builtin_immutable_heads()
-      heads: visible_heads() and referenced revisions
-    }
-  }
-  trunk()
-]
+```sh
+jj-analyze '@ | ancestors(immutable_heads().., 2) | trunk()'
 ```
+
+![Example Output](img/example-1.svg)
 
 The built-in revsets `trunk()` and `builtin_immutable_heads()` are collapsed by
 default, but they can be expanded using `-B`/`--no-collapse-builtin`.
@@ -68,18 +56,11 @@ Often, revset performance problems are caused due to eager evaluation of large
 revsets. For instance, the revset `latest(empty())` can be slow in large repos.
 We can analyze it to see the problem:
 
-```console
-$ jj-analyze 'latest(empty())'
-Latest {
-  count: 1
-  candidates: Filter {
-    candidates: (EXPENSIVE) Ancestors {
-      heads: visible_heads()
-    }
-    predicate: empty()
-  }
-}
+```sh
+jj-analyze 'latest(empty())'
 ```
+
+![Example Output](img/performance-1.svg)
 
 Since `Latest` requires its `candidates` to be evaluated eagerly, `jj` must scan
 all ancestors of `visible_heads()` and evaluate the predicate `empty()` on every
@@ -94,22 +75,11 @@ For cases like this, a common fix is to intersect the predicate with another
 revset to restrict the range of commits that needs to be searched. Usually
 `mutable()` is a good choice:
 
-```console
-$ jj-analyze 'latest(empty() & mutable())'
-Latest {
-  count: 1
-  candidates: Filter {
-    candidates: Range {
-      roots: Union [
-        builtin_immutable_heads()
-        root()
-      ]
-      heads: visible_heads() and referenced revisions
-    }
-    predicate: empty()
-  }
-}
+```sh
+jj-analyze 'latest(empty() & mutable())'
 ```
+
+![Example Output](img/performance-2.svg)
 
 The `Ancestors` operation has been replaced with a `Range` operation, which
 means that `jj` no longer needs to evaluate the `empty()` predicate on the
@@ -128,20 +98,11 @@ only compare the "heads", since these will be the most recently added commits.
 
 Therefore, we can add `heads()` to our revset get an even more efficient version:
 
-```console
-$ jj-analyze 'latest(heads(empty() & mutable()))'
-Latest {
-  count: 1
-  candidates: HeadsRange {
-    roots: Union [
-      builtin_immutable_heads()
-      root()
-    ]
-    heads: visible_heads() and referenced revisions
-    filter: empty()
-  }
-}
+```sh
+jj-analyze 'latest(heads(empty() & mutable()))'
 ```
+
+![Example Output](img/performance-3.svg)
 
 Since we added `heads()`, the revset optimizer was able to combine the `Heads`
 operation with the `Filter` and `Range` operations to produce a `HeadsRange`
