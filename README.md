@@ -140,14 +140,6 @@ Options:
 
           For instance, pass `--from-config log` to use `revsets.log`.
 
-      --collapse <ALIAS>
-          Collapses the provided revset alias, hiding it from the output
-
-      --color <MODE>
-          When to colorize output
-
-          [possible values: auto, never, always]
-
   -c, --context <CONTEXT>
           Base context for evaluation of revset
 
@@ -157,6 +149,21 @@ Options:
 
           [default: lazy]
           [possible values: eager, lazy, predicate]
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
+
+Configuration Options:
+      --collapse <ALIAS>
+          Collapses the provided revset alias, hiding it from the output
+
+      --color <MODE>
+          When to colorize output
+
+          [possible values: auto, never, always]
 
   -d, --define <DEFINE>
           Define a custom revset alias
@@ -185,10 +192,4 @@ Options:
 
   -R, --repository <PATH>
           Path to repository to load revset aliases from
-
-  -h, --help
-          Print help (see a summary with '-h')
-
-  -V, --version
-          Print version
 ```

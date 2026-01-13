@@ -81,14 +81,6 @@ struct Args {
     #[arg(long = "from-config", group = "revset", value_name = "KEY")]
     revset_from_config: Option<String>,
 
-    /// Collapses the provided revset alias, hiding it from the output
-    #[arg(long, value_name = "ALIAS")]
-    collapse: Vec<String>,
-
-    /// When to colorize output
-    #[arg(long, value_name = "MODE")]
-    color: Option<ColorMode>,
-
     /// Base context for evaluation of revset
     ///
     /// For instance, if the entire revset will be iterated over, using
@@ -96,6 +88,21 @@ struct Args {
     /// lazy evaluation of the base revset is assumed.
     #[arg(short, long, default_value_t = AnalyzeContext::Lazy)]
     context: AnalyzeContext,
+
+    #[command(flatten)]
+    config_args: ConfigArgs,
+}
+
+#[derive(clap::Args, Debug)]
+#[command(next_help_heading = "Configuration Options")]
+struct ConfigArgs {
+    /// Collapses the provided revset alias, hiding it from the output
+    #[arg(long, value_name = "ALIAS")]
+    collapse: Vec<String>,
+
+    /// When to colorize output
+    #[arg(long, value_name = "MODE")]
+    color: Option<ColorMode>,
 
     /// Define a custom revset alias
     ///
@@ -141,11 +148,12 @@ fn main() -> anyhow::Result<()> {
         .and_then(dunce::canonicalize)
         .context("Failed to find current directory")?;
     let workspace_dir = args
+        .config_args
         .repository
         .as_deref()
         .unwrap_or_else(|| find_workspace_dir(&cwd));
-    let settings =
-        load_settings(workspace_dir, !args.no_user_config).context("Failed to load settings")?;
+    let settings = load_settings(workspace_dir, !args.config_args.no_user_config)
+        .context("Failed to load settings")?;
 
     let input = args
         .revset_pos
@@ -158,7 +166,7 @@ fn main() -> anyhow::Result<()> {
         .context("Revision argument should be provided")?;
 
     let ui = Ui::with_config(settings.config()).map_err(|err| err.error)?;
-    if let Some(color) = args.color {
+    if let Some(color) = args.config_args.color {
         // If color argument is provided directly, use it
         match color {
             ColorMode::Always => colored::control::set_override(true),
@@ -198,11 +206,11 @@ fn main() -> anyhow::Result<()> {
         }
         Ok(())
     };
-    if !args.no_collapse_builtin {
+    if !args.config_args.no_collapse_builtin {
         collapse(&mut revset_aliases_map, "trunk()")?;
         collapse(&mut revset_aliases_map, "builtin_immutable_heads()")?;
     }
-    for definition in args.define {
+    for definition in args.config_args.define {
         let (name, value) = definition
             .split_once('=')
             .context("Expected a '=' in revset definition")?;
@@ -210,7 +218,7 @@ fn main() -> anyhow::Result<()> {
             .insert(name.trim(), value.trim())
             .context("Failed to insert revset definition")?;
     }
-    for function in &args.collapse {
+    for function in &args.config_args.collapse {
         collapse(&mut revset_aliases_map, function.as_str())?;
     }
     let parse_context = RevsetParseContext {
@@ -228,9 +236,9 @@ fn main() -> anyhow::Result<()> {
         &input,
         &parse_context,
         &mut reference_map,
-        !args.no_optimize,
+        !args.config_args.no_optimize,
     )?;
-    pretty_print(&expr, args.context, !args.no_analyze);
+    pretty_print(&expr, args.context, !args.config_args.no_analyze);
     Ok(())
 }
 
