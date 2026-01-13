@@ -121,7 +121,7 @@ struct Args {
 
     /// Disable loading user-defined revset aliases
     #[arg(short = 'C', long)]
-    no_config: bool,
+    no_user_config: bool,
 
     /// Disable revset optimizations
     #[arg(short = 'O', long)]
@@ -145,7 +145,7 @@ fn main() -> anyhow::Result<()> {
         .as_deref()
         .unwrap_or_else(|| find_workspace_dir(&cwd));
     let settings =
-        load_settings(workspace_dir, !args.no_config).context("Failed to load settings")?;
+        load_settings(workspace_dir, !args.no_user_config).context("Failed to load settings")?;
 
     let input = args
         .revset_pos

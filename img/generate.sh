@@ -11,7 +11,7 @@ tempfile=$(mktemp)
 example() {
   echo
   echo "[$1] jj-analyze '$2'"
-  ../target/release/jj-analyze --no-config --color=always "$2" \
+  ../target/release/jj-analyze --no-user-config --color=always "$2" \
     | tee $tempfile \
     | term-transcript capture --no-inputs --pure-svg --out "$1.svg" "jj-analyze '$2'"
   cat $tempfile

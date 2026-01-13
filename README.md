@@ -177,7 +177,7 @@ Options:
           By default, `trunk()` and `builtin_immutable_heads()` are collapsed to
           make the output easier to read.
 
-  -C, --no-config
+  -C, --no-user-config
           Disable loading user-defined revset aliases
 
   -O, --no-optimize
