@@ -56,6 +56,12 @@ evaluated. Evaluation is categorized into 3 types:
 * **Predicate** (magenta): Instead of directly producing revisions, the revset
   is treated as a boolean predicate on revisions.
 
+If you intend to collect all of the results from the revset being analyzed, you
+therefore may want to use `--context=eager` to tell `jj-analyze` that the
+revset will be evaluated eagerly. This can help detect more performance
+problems (e.g. `all()` is not flagged as expensive when using `lazy`, but it is
+flagged as expensive when using `eager`).
+
 ### The problem
 
 Often, revset performance problems are caused due to eager evaluation of large
