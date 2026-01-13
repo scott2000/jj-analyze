@@ -745,17 +745,6 @@ impl AnalyzeTree for Expr<'_> {
     }
 
     fn cost(&self, context: AnalyzeContext) -> AnalyzeCost {
-        if let Expr::Intersection(exprs) = self {
-            if exprs
-                .iter()
-                .any(|expr| expr.cost(context) == AnalyzeCost::Fast)
-            {
-                return AnalyzeCost::Fast;
-            } else {
-                return AnalyzeCost::Slow;
-            }
-        }
-
         match self {
             Expr::Ancestors {
                 heads,
@@ -787,6 +776,13 @@ impl AnalyzeTree for Expr<'_> {
                 && roots.is_root_or_none()
                 && !heads.is_root_or_none()
                 && is_large_range(generation_from_roots) =>
+            {
+                AnalyzeCost::Slow
+            }
+            Expr::Intersection(exprs)
+                if exprs
+                    .iter()
+                    .all(|expr| expr.cost(context) == AnalyzeCost::Slow) =>
             {
                 AnalyzeCost::Slow
             }
