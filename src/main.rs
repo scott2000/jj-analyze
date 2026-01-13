@@ -7,6 +7,8 @@ use anyhow::Context;
 use chrono::TimeZone as _;
 use clap::CommandFactory;
 use clap::Parser as _;
+use clap::builder::Styles;
+use clap::builder::styling::AnsiColor;
 use clap::{self};
 use clap_complete::CompleteEnv;
 use jj_cli::cli_util::find_workspace_dir;
@@ -42,6 +44,12 @@ enum ColorMode {
     Always,
 }
 
+const STYLES: Styles = Styles::styled()
+    .header(AnsiColor::Yellow.on_default().bold())
+    .usage(AnsiColor::Yellow.on_default().bold())
+    .literal(AnsiColor::Green.on_default().bold())
+    .placeholder(AnsiColor::Green.on_default());
+
 /// Analyze a revset and display a tree showing how it will be evaluated
 ///
 /// Potentially expensive operations are indicated with an `(EXPENSIVE)` label.
@@ -56,7 +64,7 @@ enum ColorMode {
 /// To make the output easier to read, nested union, intersection, and coalesce
 /// operations are flattened.
 #[derive(clap::Parser, Debug)]
-#[command(version, about)]
+#[command(version, about, styles = STYLES)]
 #[command(group(clap::ArgGroup::new("revset").required(true)))]
 struct Args {
     /// Collapses the provided revset alias, hiding it from the output
