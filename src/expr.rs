@@ -594,11 +594,6 @@ impl AnalyzeTree for Expr<'_> {
                         context,
                         tree: parents_range,
                     }),
-                    filter.as_ref().map(|filter| Child {
-                        label: Some("filter".into()),
-                        context: AnalyzeContext::Predicate,
-                        tree: filter,
-                    }),
                     Some(Child {
                         label: Some("roots".into()),
                         context: AnalyzeContext::Eager,
@@ -608,6 +603,11 @@ impl AnalyzeTree for Expr<'_> {
                         label: Some("heads".into()),
                         context: AnalyzeContext::Eager,
                         tree: heads.as_ref(),
+                    }),
+                    filter.as_ref().map(|filter| Child {
+                        label: Some("filter".into()),
+                        context: AnalyzeContext::Predicate,
+                        tree: filter,
                     }),
                 ]),
             },
@@ -702,14 +702,14 @@ impl AnalyzeTree for Expr<'_> {
                 context,
                 children: vec![
                     Child {
-                        label: Some("predicate".into()),
-                        context: AnalyzeContext::Predicate,
-                        tree: predicate,
-                    },
-                    Child {
                         label: Some("candidates".into()),
                         context,
                         tree: candidates.as_ref(),
+                    },
+                    Child {
+                        label: Some("predicate".into()),
+                        context: AnalyzeContext::Predicate,
+                        tree: predicate,
                     },
                 ],
             },

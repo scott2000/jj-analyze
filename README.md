@@ -67,10 +67,10 @@ $ jj-analyze 'latest(empty())'
 Latest {
   count: 1
   candidates: Filter {
-    predicate: empty()
     candidates: (EXPENSIVE) Ancestors {
       heads: visible_heads()
     }
+    predicate: empty()
   }
 }
 ```
@@ -93,7 +93,6 @@ $ jj-analyze 'latest(empty() & mutable())'
 Latest {
   count: 1
   candidates: Filter {
-    predicate: empty()
     candidates: Range {
       roots: Union [
         builtin_immutable_heads()
@@ -101,6 +100,7 @@ Latest {
       ]
       heads: visible_heads() and referenced revisions
     }
+    predicate: empty()
   }
 }
 ```
@@ -127,12 +127,12 @@ $ jj-analyze 'latest(heads(empty() & mutable()))'
 Latest {
   count: 1
   candidates: HeadsRange {
-    filter: empty()
     roots: Union [
       builtin_immutable_heads()
       root()
     ]
     heads: visible_heads() and referenced revisions
+    filter: empty()
   }
 }
 ```
