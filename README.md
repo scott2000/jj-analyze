@@ -13,12 +13,35 @@ expensive operations.
 cargo install --locked jj-analyze
 ```
 
-## Compatibility
+### Completions
+
+Completions can be installed differently depending on the shell:
+
+Bash:
+
+```bash
+echo "source <(COMPLETE=bash jj-analyze)" >> ~/.bashrc
+```
+
+Zsh:
+
+```zsh
+echo "source <(COMPLETE=zsh jj-analyze)" >> ~/.zshrc
+```
+
+Fish:
+
+```fish
+echo "COMPLETE=fish jj-analyze | source" >> ~/.config/fish/config.fish
+```
+
+### Compatibility
 
 The current version of `jj-analyze` is compiled to use `jj` version 0.37.0, but
-it should be backwards compatible with other recent versions.
+it should be backwards compatible with other recent versions. This program has
+not been tested on Windows.
 
-## Example
+## Examples
 
 We can look at the default log revset as an example. For simplicity, I have
 omitted `present()` since it does not affect the output.
@@ -32,7 +55,7 @@ jj-analyze '@ | ancestors(immutable_heads().., 2) | trunk()'
 The built-in revsets `trunk()` and `builtin_immutable_heads()` are collapsed by
 default, but they can be expanded using `-B`/`--no-collapse-builtin`.
 
-## Debugging performance problems
+### Debugging performance problems
 
 `jj-analyze` can also be used to debug performance problems. When running in a
 terminal that supports colors, each operation is colored based on how it was
@@ -50,7 +73,7 @@ revset will be evaluated eagerly. This can help detect more performance
 problems (e.g. `all()` is not flagged as expensive when using `lazy`, but it is
 flagged as expensive when using `eager`).
 
-### An example problem
+#### An example problem
 
 Often, revset performance problems are caused due to eager evaluation of large
 revsets. For instance, the revset `latest(empty())` can be slow in large repos.
@@ -69,7 +92,7 @@ indicates that this `Ancestors` operation may be expensive. `jj-analyze` adds an
 `(EXPENSIVE)` label like this whenever it sees eager evaluation of a revset
 which is likely to produce a large number of revisions.
 
-### Solution 1
+#### Solution 1
 
 For cases like this, a common fix is to intersect the predicate with another
 revset to restrict the range of commits that needs to be searched. Usually
@@ -87,7 +110,7 @@ entire history of the repo. Instead, it can stop scanning early whenever it
 reaches an immutable revision, since now we've told it that we don't care about
 any revisions which are ancestors of immutable revisions.
 
-### Solution 2
+#### Solution 2
 
 Another common solution for performance problems is to use `heads()` when we
 only care about the most recent commits in a revset. For instance, `latest()`
