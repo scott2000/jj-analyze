@@ -337,6 +337,7 @@ fn resolve_user_expressions(
             let candidates = resolve_user_expressions(candidates, operation, reference_map);
             RevsetExpression::AsFilter(candidates)
         }
+        RevsetExpression::Divergent => RevsetExpression::Divergent,
         RevsetExpression::AtOperation {
             candidates,
             operation,

@@ -1890,8 +1890,7 @@ dependencies = [
 [[package]]
 name = "jj-cli"
 version = "0.37.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c048b4caec9c9646e235ab7a3e80c42dddd438b224ecb22e13e1c1abb87b584"
+source = "git+https://github.com/jj-vcs/jj.git?rev=3b40151218fdce42f7371091429aaf756d14b354#3b40151218fdce42f7371091429aaf756d14b354"
 dependencies = [
  "bstr",
  "chrono",
@@ -1917,6 +1916,8 @@ dependencies = [
  "pest",
  "pest_derive",
  "pollster",
+ "rand 0.9.2",
+ "rand_chacha",
  "rayon",
  "regex",
  "rpassword",
@@ -1925,6 +1926,7 @@ dependencies = [
  "scm-record",
  "serde",
  "serde_json",
+ "shlex",
  "slab",
  "strsim",
  "tempfile",
@@ -1944,8 +1946,7 @@ dependencies = [
 [[package]]
 name = "jj-lib"
 version = "0.37.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "147d444b418eacfd4f46ac757b32aa4692e5d656f492daee4cb7c004466dbd36"
+source = "git+https://github.com/jj-vcs/jj.git?rev=3b40151218fdce42f7371091429aaf756d14b354#3b40151218fdce42f7371091429aaf756d14b354"
 dependencies = [
  "async-trait",
  "blake2",
@@ -1955,6 +1956,7 @@ dependencies = [
  "digest",
  "dunce",
  "either",
+ "etcetera",
  "futures 0.3.31",
  "gix",
  "globset",
@@ -1993,8 +1995,7 @@ dependencies = [
 [[package]]
 name = "jj-lib-proc-macros"
 version = "0.37.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "883588e7c5fc32aedac167e5057ba3ec8bcbd467d24bbe4d26dda035399ec14a"
+source = "git+https://github.com/jj-vcs/jj.git?rev=3b40151218fdce42f7371091429aaf756d14b354#3b40151218fdce42f7371091429aaf756d14b354"
 dependencies = [
  "proc-macro2",
  "quote",

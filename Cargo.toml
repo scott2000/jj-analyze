@@ -23,7 +23,7 @@ dunce = "1.0.5"
 futures = "0.3.31"
 indexmap = "2.13.0"
 itertools = "0.14.0"
-jj-cli = "0.37.0"
-jj-lib = "0.37.0"
+jj-cli = { git = "https://github.com/jj-vcs/jj.git", rev = "3b40151218fdce42f7371091429aaf756d14b354" }
+jj-lib = { git = "https://github.com/jj-vcs/jj.git", rev = "3b40151218fdce42f7371091429aaf756d14b354" }
 serde = "1.0.228"
 tokio = "1.49.0"

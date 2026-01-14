@@ -72,6 +72,10 @@ impl AnalyzeTree for ResolvedReference<'_> {
 #[derive(Debug)]
 pub enum Predicate<'a> {
     Filter(RevsetFilterPredicate),
+    Divergent {
+        // This isn't actually an expression, but it's easier for us to print it as if it were.
+        visible_heads: Box<Expr<'a>>,
+    },
     Set(Box<Expr<'a>>),
     NotIn(Box<Self>),
     Union(Vec<Self>),
@@ -85,6 +89,12 @@ impl<'a> Predicate<'a> {
     ) -> Self {
         match predicate_expression {
             ResolvedPredicateExpression::Filter(filter) => Self::Filter(filter),
+            ResolvedPredicateExpression::Divergent { visible_heads } => Self::Divergent {
+                visible_heads: Box::new(Expr::parse(
+                    ResolvedExpression::Commits(visible_heads),
+                    reference_map,
+                )),
+            },
             ResolvedPredicateExpression::Set(expr) => {
                 Self::Set(Box::new(Expr::parse(*expr, reference_map)))
             }
@@ -142,6 +152,15 @@ impl AnalyzeTree for Predicate<'_> {
                 name: filter_to_string(filter),
                 context: AnalyzeContext::Predicate,
                 children: vec![],
+            },
+            Self::Divergent { visible_heads } => TreeEntry {
+                name: "Divergent".into(),
+                context: AnalyzeContext::Predicate,
+                children: vec![Child {
+                    label: Some("visible_heads".into()),
+                    context: AnalyzeContext::Eager,
+                    tree: visible_heads.as_ref(),
+                }],
             },
             Self::Set(expr) => expr.entry(AnalyzeContext::Predicate),
             Self::NotIn(expr) => match expr.as_ref() {
@@ -237,8 +256,8 @@ fn filter_to_string(filter: &RevsetFilterPredicate) -> Cow<'static, str> {
         RevsetFilterPredicate::File(files) => {
             format!("files({})", format_fileset_expression(files)).into()
         }
-        RevsetFilterPredicate::DiffContains { text, files } => format!(
-            "diff_contains({}, {})",
+        RevsetFilterPredicate::DiffLines { text, files } => format!(
+            "diff_lines({}, {})",
             format_string_expression(text),
             format_fileset_expression(files)
         )
