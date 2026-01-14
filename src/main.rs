@@ -249,14 +249,17 @@ fn load_settings(workspace_dir: &Path, load_user_config: bool) -> anyhow::Result
         config_env
             .reload_user_config(&mut raw_config)
             .context("Failed to load user config")?;
+        let ui = Ui::with_config(raw_config.as_ref()).unwrap_or_else(|_| Ui::null());
         if let Ok(loader) = DefaultWorkspaceLoaderFactory.create(workspace_dir) {
             config_env.reset_repo_path(loader.repo_path());
             config_env
-                .reload_repo_config(&mut raw_config)
+                .reload_repo_config(&ui, &mut raw_config)
+                .map_err(|err| err.error)
                 .context("Failed to load repo config")?;
             config_env.reset_workspace_path(loader.workspace_root());
             config_env
-                .reload_workspace_config(&mut raw_config)
+                .reload_workspace_config(&ui, &mut raw_config)
+                .map_err(|err| err.error)
                 .context("Failed to load workspace config")?;
         }
     }

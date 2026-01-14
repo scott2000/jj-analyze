@@ -36,6 +36,7 @@ use jj_lib::repo_path::RepoPath;
 use jj_lib::repo_path::RepoPathBuf;
 use jj_lib::revset::GENERATION_RANGE_FULL;
 use jj_lib::revset::PARENTS_RANGE_FULL;
+use jj_lib::revset::RemoteRefSymbolExpression;
 use jj_lib::revset::ResolvedExpression;
 use jj_lib::revset::ResolvedPredicateExpression;
 use jj_lib::revset::ResolvedRevsetExpression;
@@ -191,45 +192,19 @@ fn resolve_user_expressions(
                     format_string_expression(bookmark)
                 )),
                 RevsetCommitRef::RemoteBookmarks {
-                    bookmark: StringExpression::Pattern(b),
-                    remote: StringExpression::Pattern(r),
+                    symbol,
                     remote_ref_state,
-                } if is_all_pattern(b) && is_all_pattern(r) => match remote_ref_state {
-                    None => ResolvedReference::new_static("remote_bookmarks()"),
-                    Some(RemoteRefState::New) => {
-                        ResolvedReference::new_static("untracked_remote_bookmarks()")
-                    }
-                    Some(RemoteRefState::Tracked) => {
-                        ResolvedReference::new_static("tracked_remote_bookmarks()")
-                    }
-                },
-                RevsetCommitRef::RemoteBookmarks {
-                    bookmark,
-                    remote,
-                    remote_ref_state,
-                } => match remote_ref_state {
-                    None => ResolvedReference::new_owned(format!(
-                        "remote_bookmarks({}, remote={})",
-                        format_string_expression(bookmark),
-                        format_string_expression(remote)
-                    )),
-                    Some(RemoteRefState::New) => ResolvedReference::new_owned(format!(
-                        "untracked_remote_bookmarks({}, remote={})",
-                        format_string_expression(bookmark),
-                        format_string_expression(remote)
-                    )),
-                    Some(RemoteRefState::Tracked) => ResolvedReference::new_owned(format!(
-                        "tracked_remote_bookmarks({}, remote={})",
-                        format_string_expression(bookmark),
-                        format_string_expression(remote)
-                    )),
-                },
+                } => remote_symbol("remote_bookmarks", symbol, remote_ref_state),
                 RevsetCommitRef::Tags(StringExpression::Pattern(p)) if is_all_pattern(p) => {
                     ResolvedReference::new_static("tags()")
                 }
                 RevsetCommitRef::Tags(tag) => {
                     ResolvedReference::new_owned(format!("tags({})", format_string_expression(tag)))
                 }
+                RevsetCommitRef::RemoteTags {
+                    symbol,
+                    remote_ref_state,
+                } => remote_symbol("remote_tags", symbol, remote_ref_state),
                 RevsetCommitRef::GitRefs => ResolvedReference::new_static("git_refs()"),
                 RevsetCommitRef::GitHead => ResolvedReference::new_static("git_head()"),
             };
@@ -337,6 +312,7 @@ fn resolve_user_expressions(
             let candidates = resolve_user_expressions(candidates, operation, reference_map);
             RevsetExpression::AsFilter(candidates)
         }
+        RevsetExpression::Divergent => RevsetExpression::Divergent,
         RevsetExpression::AtOperation {
             candidates,
             operation,
@@ -406,6 +382,48 @@ fn resolve_user_expressions(
 
 fn is_all_pattern(pattern: &StringPattern) -> bool {
     matches!(pattern, StringPattern::Substring(s) if s.is_empty())
+}
+
+fn remote_symbol(
+    kind: &'static str,
+    symbol: &RemoteRefSymbolExpression,
+    remote_ref_state: &Option<RemoteRefState>,
+) -> ResolvedReference<'static> {
+    if let RemoteRefSymbolExpression {
+        name: StringExpression::Pattern(name),
+        remote: StringExpression::Pattern(remote),
+    } = symbol
+        && is_all_pattern(name)
+        && is_all_pattern(remote)
+    {
+        match remote_ref_state {
+            None => ResolvedReference::new_owned(format!("{kind}()")),
+            Some(RemoteRefState::New) => {
+                ResolvedReference::new_owned(format!("untracked_{kind}()"))
+            }
+            Some(RemoteRefState::Tracked) => {
+                ResolvedReference::new_owned(format!("tracked_{kind}()"))
+            }
+        }
+    } else {
+        match remote_ref_state {
+            None => ResolvedReference::new_owned(format!(
+                "{kind}({}, remote={})",
+                format_string_expression(&symbol.name),
+                format_string_expression(&symbol.remote)
+            )),
+            Some(RemoteRefState::New) => ResolvedReference::new_owned(format!(
+                "untracked_{kind}({}, remote={})",
+                format_string_expression(&symbol.name),
+                format_string_expression(&symbol.remote)
+            )),
+            Some(RemoteRefState::Tracked) => ResolvedReference::new_owned(format!(
+                "tracked_{kind}({}, remote={})",
+                format_string_expression(&symbol.name),
+                format_string_expression(&symbol.remote)
+            )),
+        }
+    }
 }
 
 #[derive(Debug)]
