@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+*No changes yet*
+
+## [0.2.0] - 2026-01-13
+
 Compatible with `jj` 0.37.0.
 
 ### Added
@@ -26,5 +30,6 @@ Compatible with `jj` 0.37.0.
 
 Initial release of `jj-analyze`. Compatible with `jj` 0.37.0.
 
-[Unreleased]: https://github.com/scott2000/jj-analyze/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/scott2000/jj-analyze/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/scott2000/jj-analyze/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/scott2000/jj-analyze/releases/tag/v0.1.0
