@@ -4,7 +4,6 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use anyhow::Context;
-use anyhow::anyhow;
 use chrono::TimeZone as _;
 use clap::CommandFactory;
 use clap::Parser as _;
@@ -58,6 +57,7 @@ enum ColorMode {
 /// operations are flattened.
 #[derive(clap::Parser, Debug)]
 #[command(version, about)]
+#[command(group(clap::ArgGroup::new("revset").required(true)))]
 struct Args {
     /// Collapses the provided revset alias, hiding it from the output
     #[arg(long, value_name = "ALIAS")]
@@ -110,14 +110,24 @@ struct Args {
     repository: Option<PathBuf>,
 
     /// A revset to analyze
-    #[arg(value_name = "REVSET")]
-    input: String,
+    #[arg(group = "revset", value_name = "REVSET")]
+    revset_pos: Option<String>,
+
+    // Hidden `-r` flag
+    #[arg(short = 'r', group = "revset", hide = true, value_name = "REVSET")]
+    revset_opt: Option<String>,
 }
 
 fn main() -> anyhow::Result<()> {
     CompleteEnv::with_factory(Args::command).complete();
 
     let args = Args::parse();
+
+    let input = args
+        .revset_pos
+        .as_deref()
+        .or(args.revset_opt.as_deref())
+        .context("Revision argument should be provided")?;
 
     let cwd = env::current_dir()
         .and_then(dunce::canonicalize)
@@ -163,7 +173,7 @@ fn main() -> anyhow::Result<()> {
     let mut revset_aliases_map =
         revset_util::load_revset_aliases(&ui, settings.config()).map_err(|err| err.error)?;
     let collapse = |map: &mut RevsetAliasesMap, function: &str| -> anyhow::Result<()> {
-        if args.input != function {
+        if input != function {
             map.insert(function, format!("{function:?}"))
                 .context("Failed to parse alias name for `--collapse`")?;
         }
@@ -176,7 +186,7 @@ fn main() -> anyhow::Result<()> {
     for definition in args.define {
         let (name, value) = definition
             .split_once('=')
-            .ok_or_else(|| anyhow!("Expected a '=' in revset definition"))?;
+            .context("Expected a '=' in revset definition")?;
         revset_aliases_map
             .insert(name.trim(), value.trim())
             .context("Failed to insert revset definition")?;
@@ -195,12 +205,7 @@ fn main() -> anyhow::Result<()> {
         workspace: Some(workspace_context),
     };
     let mut reference_map = ReferenceMap::new();
-    let expr = parse::parse(
-        &args.input,
-        &parse_context,
-        &mut reference_map,
-        !args.no_optimize,
-    )?;
+    let expr = parse::parse(input, &parse_context, &mut reference_map, !args.no_optimize)?;
     pretty_print(&expr, args.context, !args.no_analyze);
     Ok(())
 }

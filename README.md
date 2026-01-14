@@ -128,10 +128,10 @@ implementation, analysis results may not be accurate.
 To make the output easier to read, nested union, intersection, and coalesce
 operations are flattened.
 
-Usage: jj-analyze [OPTIONS] <REVSET>
+Usage: jj-analyze [OPTIONS] <REVSET|-r <REVSET>>
 
 Arguments:
-  <REVSET>
+  [REVSET]
           A revset to analyze
 
 Options:

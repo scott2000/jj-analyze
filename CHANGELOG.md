@@ -12,6 +12,7 @@ Compatible with `jj` 0.37.0.
 ### Added
 
 * New `-O`/`--no-optimize` flag to disable revset optimizations.
+* Extra `-r` argument is now allowed for consistency with `jj`.
 
 ### Changed
 
