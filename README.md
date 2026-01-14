@@ -50,7 +50,7 @@ revset will be evaluated eagerly. This can help detect more performance
 problems (e.g. `all()` is not flagged as expensive when using `lazy`, but it is
 flagged as expensive when using `eager`).
 
-### The problem
+### An example problem
 
 Often, revset performance problems are caused due to eager evaluation of large
 revsets. For instance, the revset `latest(empty())` can be slow in large repos.
@@ -109,6 +109,42 @@ operation with the `FilterWithin` and `Range` operations to produce a
 `HeadsRange` operation. Similarly to before, `jj` can still stop scanning when
 it reaches an immutable revision, but now it can also stop scanning early when
 it finds a revision that matches the `empty()` predicate.
+
+## Operations Reference
+
+The operations used internally by the `jj` revset engine are slightly different
+from the higher-level revset syntax. Here are some examples:
+
+| Revset                             | Backend Operation                             |
+| ---------------------------------- | --------------------------------------------- |
+| `ancestors(heads)`, `::heads`      | `Ancestors { heads }`                         |
+| `parents(heads, n)`                | `Ancestors { heads, generation: n }`          |
+| `ancestors(heads, n)`              | `Ancestors { heads, generation: 0..n }`       |
+| `first_ancestors(heads)`           | `Ancestors { heads, parent_index: 0 }`        |
+| `roots..heads`                     | `Range { roots, heads }`                      |
+| `roots.. & parents(heads, n)`      | `Range { roots, heads, generation: n }`       |
+| `roots.. & ancestors(heads, n)`    | `Range { roots, heads, generation: 0..n }`    |
+| `roots.. & first_ancestors(heads)` | `Range { roots, heads, parent_index: 0 }`     |
+| `roots::heads`                     | `DagRange { roots, heads }`                   |
+| `descendants(roots)`, `roots::`    | `DagRange { roots, heads: visible_heads() }`  |
+| `children(roots, n)`               | `DagRange { roots, heads: visible_heads(), generation_from_roots: n }` |
+| `descendants(roots, n)`            | `DagRange { roots, heads: visible_heads(), generation_from_roots: 0..n }` |
+| `reachable(sources, domain)`       | `Reachable { sources, domain }`               |
+| `heads(x)`                         | `Heads(x)`                                    |
+| `heads(roots..heads)`              | `HeadsRange { roots, heads }`                 |
+| `heads(roots..heads & filter)`     | `HeadsRange { roots, heads, filter }`         |
+| `heads(::heads & filter)`          | `HeadsRange { roots: none(), heads, filter }` |
+| `roots(x)`                         | `Roots(x)`                                    |
+| `fork_point(x)`                    | `ForkPoint(x)`                                |
+| `bisect(x)`                        | `Bisect(x)`                                   |
+| `exactly(candidates, count)`       | `HasSize { candidates, count }`               |
+| `latest(candidates, count)`        | `Latest { candidates, count }`                |
+| `coalesce(x, y)`                   | `Coalesce [ x, y ]`                           |
+| `x \| y`                           | `Union [ x, y ]`                              |
+| `candidates & predicate`           | `FilterWithin { candidates, predicate }`      |
+| `x & y`                            | `Intersection [ x, y ]`                       |
+| `candidates ~ excluded`            | `Difference { candidates, excluded }`         |
+| `~x`                               | `NotIn(x)` *(in predicates only)*             |
 
 ## Usage
 
