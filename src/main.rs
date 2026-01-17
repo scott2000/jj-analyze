@@ -28,6 +28,7 @@ use jj_lib::settings::UserSettings;
 use jj_lib::workspace::DefaultWorkspaceLoaderFactory;
 use jj_lib::workspace::WorkspaceLoaderFactory as _;
 
+use crate::parse::ParseOptions;
 use crate::parse::ReferenceMap;
 use crate::print::pretty_print;
 use crate::tree::AnalyzeContext;
@@ -232,13 +233,12 @@ fn main() -> anyhow::Result<()> {
         workspace: Some(workspace_context),
     };
     let mut reference_map = ReferenceMap::new();
-    let expr = parse::parse(
-        &input,
-        &parse_context,
-        &mut reference_map,
-        !args.config_args.no_optimize,
-    )?;
-    pretty_print(&expr, args.context, !args.config_args.no_analyze);
+    let parse_options = ParseOptions {
+        optimize: !args.config_args.no_optimize,
+        parse_as_predicate: args.context == AnalyzeContext::Predicate,
+    };
+    let tree = parse::parse(&input, &parse_context, &mut reference_map, &parse_options)?;
+    pretty_print(tree.as_ref(), args.context, !args.config_args.no_analyze);
     Ok(())
 }
 
