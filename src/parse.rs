@@ -34,6 +34,10 @@ use jj_lib::repo::ReadonlyRepo;
 use jj_lib::repo::Repo;
 use jj_lib::repo_path::RepoPath;
 use jj_lib::repo_path::RepoPathBuf;
+use jj_lib::revset::GENERATION_RANGE_FULL;
+use jj_lib::revset::PARENTS_RANGE_FULL;
+use jj_lib::revset::ResolvedExpression;
+use jj_lib::revset::ResolvedPredicateExpression;
 use jj_lib::revset::ResolvedRevsetExpression;
 use jj_lib::revset::RevsetCommitRef;
 use jj_lib::revset::RevsetDiagnostics;
@@ -51,15 +55,23 @@ use jj_lib::view::View;
 use tokio::io::AsyncRead;
 
 use crate::expr::Expr;
+use crate::expr::Predicate;
 use crate::expr::ResolvedReference;
 use crate::print::format_string_expression;
+use crate::tree::AnalyzeTree;
+
+#[derive(Debug, Clone, Copy)]
+pub struct ParseOptions {
+    pub optimize: bool,
+    pub parse_as_predicate: bool,
+}
 
 pub fn parse<'a>(
     input: &str,
     context: &RevsetParseContext,
     reference_map: &'a mut ReferenceMap,
-    optimize: bool,
-) -> anyhow::Result<Expr<'a>> {
+    options: &ParseOptions,
+) -> anyhow::Result<Box<dyn AnalyzeTree + 'a>> {
     let dummy_backend: Box<dyn Backend> = Box::new(DummyBackend {
         root_commit_id: reference_map.insert(ResolvedReference::root()),
     });
@@ -89,11 +101,55 @@ pub fn parse<'a>(
     let parsed =
         revset::parse(&mut diagnostics, input, context).context("Failed to parse revset")?;
     let mut resolved = resolve_user_expressions(&parsed, None, reference_map);
-    if optimize {
+    if options.parse_as_predicate {
+        resolved = Arc::new(ResolvedRevsetExpression::AsFilter(resolved));
+    }
+    if options.optimize {
         resolved = revset::optimize(resolved);
     }
     let backend = resolved.to_backend_expression(&dummy_repo);
-    Ok(Expr::parse(backend, reference_map))
+    if options.parse_as_predicate
+        && let Some(predicate) = filter_within_to_predicate(&backend, reference_map)
+    {
+        Ok(Box::new(Predicate::parse(predicate.clone(), reference_map)))
+    } else {
+        Ok(Box::new(Expr::parse(backend, reference_map)))
+    }
+}
+
+fn filter_within_to_predicate<'a>(
+    expr: &'a ResolvedExpression,
+    reference_map: &ReferenceMap,
+) -> Option<&'a ResolvedPredicateExpression> {
+    let ResolvedExpression::FilterWithin {
+        candidates,
+        predicate,
+    } = expr
+    else {
+        return None;
+    };
+
+    let ResolvedExpression::Ancestors {
+        heads,
+        generation: GENERATION_RANGE_FULL,
+        parents_range: PARENTS_RANGE_FULL,
+    } = candidates.as_ref()
+    else {
+        return None;
+    };
+
+    let ResolvedExpression::Commits(commit_ids) = heads.as_ref() else {
+        return None;
+    };
+
+    if !commit_ids
+        .iter()
+        .any(|commit_id| reference_map.get(commit_id) == ResolvedReference::visible_heads())
+    {
+        return None;
+    }
+
+    Some(predicate)
 }
 
 fn resolve_user_expressions(

@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-*No changes yet*
+Compatible with `jj` 0.37.0.
+
+### Changed
+
+* If `--context predicate` is used, the expression is now resolved as a
+  predicate instead of a normal expression.
 
 ## [0.2.0] - 2026-01-13
 
