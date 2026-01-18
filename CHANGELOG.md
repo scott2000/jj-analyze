@@ -14,6 +14,10 @@ Compatible with `jj` 0.37.0.
 * If `--context predicate` is used, the expression is now resolved as a
   predicate instead of a normal expression.
 
+### Fixed
+
+* Duplicate commit references resulting from `at_operation()` are now removed.
+
 ## [0.2.0] - 2026-01-13
 
 Compatible with `jj` 0.37.0.

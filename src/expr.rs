@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::fmt;
 use std::ops::Range;
 
+use itertools::Itertools;
 use jj_lib::fileset::FilesetExpression;
 use jj_lib::revset::GENERATION_RANGE_FULL;
 use jj_lib::revset::PARENTS_RANGE_FULL;
@@ -321,23 +322,27 @@ impl<'a> Expr<'a> {
         let parse = |expr| Box::new(Self::parse(expr, reference_map));
 
         match backend_expr {
-            ResolvedExpression::Commits(commit_ids) if commit_ids.is_empty() => Self::None,
-            ResolvedExpression::Commits(commit_ids) if commit_ids.len() == 1 => {
-                Self::Reference(reference_map.get(&commit_ids[0]))
+            ResolvedExpression::Commits(commit_ids) => {
+                let commit_ids = commit_ids.into_iter().unique().collect_vec();
+                match commit_ids.as_slice() {
+                    [] => Self::None,
+                    [single] => Self::Reference(reference_map.get(single)),
+                    _ => {
+                        if commit_ids.iter().any(|commit_id| {
+                            reference_map.get(commit_id) == ResolvedReference::visible_heads()
+                        }) {
+                            Self::Reference(ResolvedReference::visible_heads_or_referenced())
+                        } else {
+                            Self::Union(
+                                commit_ids
+                                    .iter()
+                                    .map(|commit_id| Self::Reference(reference_map.get(commit_id)))
+                                    .collect(),
+                            )
+                        }
+                    }
+                }
             }
-            ResolvedExpression::Commits(commit_ids)
-                if commit_ids.iter().any(|commit_id| {
-                    reference_map.get(commit_id) == ResolvedReference::visible_heads()
-                }) =>
-            {
-                Self::Reference(ResolvedReference::visible_heads_or_referenced())
-            }
-            ResolvedExpression::Commits(commit_ids) => Self::Union(
-                commit_ids
-                    .iter()
-                    .map(|commit_id| Self::Reference(reference_map.get(commit_id)))
-                    .collect(),
-            ),
             ResolvedExpression::Ancestors {
                 heads,
                 generation,
@@ -424,6 +429,7 @@ impl<'a> Expr<'a> {
                             result.extend(
                                 commit_ids
                                     .iter()
+                                    .unique()
                                     .map(|commit_id| Self::Reference(reference_map.get(commit_id))),
                             )
                         }
