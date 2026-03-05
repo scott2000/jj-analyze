@@ -37,7 +37,7 @@ echo "COMPLETE=fish jj-analyze | source" >> ~/.config/fish/config.fish
 
 ### Compatibility
 
-The current version of `jj-analyze` is compiled to use `jj` version 0.38.0, but
+The current version of `jj-analyze` is compiled to use `jj` version 0.39.0, but
 it should be backwards compatible with other recent versions. This program has
 not been tested on Windows.
 

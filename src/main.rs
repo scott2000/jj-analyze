@@ -11,12 +11,12 @@ use clap::builder::Styles;
 use clap::builder::styling::AnsiColor;
 use clap::{self};
 use clap_complete::CompleteEnv;
+use jj_cli::cli_util;
 use jj_cli::cli_util::find_workspace_dir;
 use jj_cli::config::ConfigEnv;
 use jj_cli::config::config_from_environment;
 use jj_cli::config::default_config_layers;
 use jj_cli::config::default_config_migrations;
-use jj_cli::revset_util;
 use jj_cli::ui::Ui;
 use jj_lib::ref_name::WorkspaceName;
 use jj_lib::repo_path::RepoPathUiConverter;
@@ -198,8 +198,10 @@ fn main() -> anyhow::Result<()> {
     } else {
         chrono::Local::now()
     };
+    let fileset_aliases_map =
+        cli_util::load_fileset_aliases(&ui, settings.config()).map_err(|err| err.error)?;
     let mut revset_aliases_map =
-        revset_util::load_revset_aliases(&ui, settings.config()).map_err(|err| err.error)?;
+        cli_util::load_revset_aliases(&ui, settings.config()).map_err(|err| err.error)?;
     let collapse = |map: &mut RevsetAliasesMap, function: &str| -> anyhow::Result<()> {
         if input != function {
             map.insert(function, format!("{function:?}"))
@@ -228,6 +230,7 @@ fn main() -> anyhow::Result<()> {
         user_email: "<user-email>",
         date_pattern_context: now.into(),
         default_ignored_remote: None,
+        fileset_aliases_map: &fileset_aliases_map,
         use_glob_by_default: true,
         extensions: &RevsetExtensions::new(),
         workspace: Some(workspace_context),
