@@ -4,6 +4,7 @@ use std::ops::Range;
 
 use itertools::Itertools;
 use jj_lib::fileset::FilesetExpression;
+use jj_lib::revset::DiffMatchSide;
 use jj_lib::revset::GENERATION_RANGE_FULL;
 use jj_lib::revset::PARENTS_RANGE_FULL;
 use jj_lib::revset::ResolvedExpression;
@@ -257,8 +258,32 @@ fn filter_to_string(filter: &RevsetFilterPredicate) -> Cow<'static, str> {
         RevsetFilterPredicate::File(files) => {
             format!("files({})", format_fileset_expression(files)).into()
         }
-        RevsetFilterPredicate::DiffLines { text, files } => format!(
+        RevsetFilterPredicate::DiffLines {
+            text,
+            files,
+            side: DiffMatchSide::Either,
+        } => format!(
             "diff_lines({}, {})",
+            format_string_expression(text),
+            format_fileset_expression(files)
+        )
+        .into(),
+        RevsetFilterPredicate::DiffLines {
+            text,
+            files,
+            side: DiffMatchSide::Left,
+        } => format!(
+            "diff_lines_removed({}, {})",
+            format_string_expression(text),
+            format_fileset_expression(files)
+        )
+        .into(),
+        RevsetFilterPredicate::DiffLines {
+            text,
+            files,
+            side: DiffMatchSide::Right,
+        } => format!(
+            "diff_lines_added({}, {})",
             format_string_expression(text),
             format_fileset_expression(files)
         )
@@ -301,6 +326,9 @@ pub enum Expr<'a> {
         filter: Option<Predicate<'a>>,
     },
     Roots(Box<Self>),
+    Forks {
+        heads: Box<Self>,
+    },
     ForkPoint(Box<Self>),
     Bisect(Box<Self>),
     HasSize {
@@ -408,6 +436,9 @@ impl<'a> Expr<'a> {
                 filter: filter.map(|predicate| Predicate::parse(predicate, reference_map)),
             },
             ResolvedExpression::Roots(expr) => Self::Roots(parse(*expr)),
+            ResolvedExpression::Forks { heads } => Self::Forks {
+                heads: parse(*heads),
+            },
             ResolvedExpression::ForkPoint(expr) => Self::ForkPoint(parse(*expr)),
             ResolvedExpression::Bisect(expr) => Self::Bisect(parse(*expr)),
             ResolvedExpression::HasSize { candidates, count } => Self::HasSize {
@@ -641,6 +672,15 @@ impl AnalyzeTree for Expr<'_> {
                     label: None,
                     context: AnalyzeContext::Eager,
                     tree: expr.as_ref(),
+                }],
+            },
+            Self::Forks { heads } => TreeEntry {
+                name: "Forks".into(),
+                context: context.predicate_to_lazy(),
+                children: vec![Child {
+                    label: Some("heads".into()),
+                    context: AnalyzeContext::Eager,
+                    tree: heads.as_ref(),
                 }],
             },
             Self::ForkPoint(expr) => TreeEntry {

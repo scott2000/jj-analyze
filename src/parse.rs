@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use anyhow::Context as _;
 use async_trait::async_trait;
+use futures::AsyncRead;
 use futures::stream::BoxStream;
 use indexmap::IndexSet;
 use jj_lib::backend::Backend;
@@ -16,6 +17,7 @@ use jj_lib::backend::CopyHistory;
 use jj_lib::backend::CopyId;
 use jj_lib::backend::CopyRecord;
 use jj_lib::backend::FileId;
+use jj_lib::backend::RelatedCopy;
 use jj_lib::backend::SigningFn;
 use jj_lib::backend::SymlinkId;
 use jj_lib::backend::Tree;
@@ -53,7 +55,6 @@ use jj_lib::str_util::StringPattern;
 use jj_lib::submodule_store::SubmoduleStore;
 use jj_lib::tree_merge::MergeOptions;
 use jj_lib::view::View;
-use tokio::io::AsyncRead;
 
 use crate::expr::Expr;
 use crate::expr::Predicate;
@@ -205,8 +206,6 @@ fn resolve_user_expressions(
                     symbol,
                     remote_ref_state,
                 } => remote_symbol("remote_tags", symbol, remote_ref_state),
-                RevsetCommitRef::GitRefs => ResolvedReference::new_static("git_refs()"),
-                RevsetCommitRef::GitHead => ResolvedReference::new_static("git_head()"),
             };
             if let Some(operation) = operation {
                 let with_operation =
@@ -287,6 +286,7 @@ fn resolve_user_expressions(
             let roots = resolve_user_expressions(roots, operation, reference_map);
             RevsetExpression::Roots(roots)
         }
+        RevsetExpression::Forks => RevsetExpression::Forks,
         RevsetExpression::ForkPoint(expression) => {
             let expression = resolve_user_expressions(expression, operation, reference_map);
             RevsetExpression::ForkPoint(expression)
@@ -493,7 +493,7 @@ impl Backend for DummyBackend {
         unimplemented!()
     }
 
-    async fn get_related_copies(&self, _copy_id: &CopyId) -> BackendResult<Vec<CopyHistory>> {
+    async fn get_related_copies(&self, _copy_id: &CopyId) -> BackendResult<Vec<RelatedCopy>> {
         unimplemented!()
     }
 

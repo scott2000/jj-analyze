@@ -204,7 +204,7 @@ fn main() -> anyhow::Result<()> {
         cli_util::load_revset_aliases(&ui, settings.config()).map_err(|err| err.error)?;
     let collapse = |map: &mut RevsetAliasesMap, function: &str| -> anyhow::Result<()> {
         if input != function {
-            map.insert(function, format!("{function:?}"))
+            map.insert(function, format!("{function:?}"), None)
                 .context("Failed to parse alias name for `--collapse`")?;
         }
         Ok(())
@@ -218,7 +218,7 @@ fn main() -> anyhow::Result<()> {
             .split_once('=')
             .context("Expected a '=' in revset definition")?;
         revset_aliases_map
-            .insert(name.trim(), value.trim())
+            .insert(name.trim(), value.trim(), None)
             .context("Failed to insert revset definition")?;
     }
     for function in &args.config_args.collapse {
@@ -231,7 +231,6 @@ fn main() -> anyhow::Result<()> {
         date_pattern_context: now.into(),
         default_ignored_remote: None,
         fileset_aliases_map: &fileset_aliases_map,
-        use_glob_by_default: true,
         extensions: &RevsetExtensions::new(),
         workspace: Some(workspace_context),
     };
