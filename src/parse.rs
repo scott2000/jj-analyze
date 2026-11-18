@@ -2,12 +2,14 @@ use std::collections::BTreeMap;
 use std::collections::HashSet;
 use std::pin::Pin;
 use std::sync::Arc;
+use std::time::SystemTime;
 
 use anyhow::Context as _;
 use async_trait::async_trait;
 use futures::AsyncRead;
 use futures::stream::BoxStream;
 use indexmap::IndexSet;
+use jj_core::files::MergeOptions;
 use jj_lib::backend::Backend;
 use jj_lib::backend::BackendResult;
 use jj_lib::backend::ChangeId;
@@ -29,7 +31,6 @@ use jj_lib::object_id::HexPrefix;
 use jj_lib::object_id::ObjectId;
 use jj_lib::object_id::PrefixResolution;
 use jj_lib::op_store::OpStore;
-use jj_lib::op_store::RefTarget;
 use jj_lib::op_store::RemoteRefState;
 use jj_lib::ref_name::WorkspaceName;
 use jj_lib::repo::ReadonlyRepo;
@@ -53,7 +54,6 @@ use jj_lib::store::Store;
 use jj_lib::str_util::StringExpression;
 use jj_lib::str_util::StringPattern;
 use jj_lib::submodule_store::SubmoduleStore;
-use jj_lib::tree_merge::MergeOptions;
 use jj_lib::view::View;
 
 use crate::expr::Expr;
@@ -88,15 +88,18 @@ pub fn parse<'a>(
                 same_change: jj_lib::merge::SameChange::Accept,
             },
         ),
-        view: View::new(jj_lib::op_store::View {
-            head_ids: visible_heads,
-            local_bookmarks: BTreeMap::new(),
-            local_tags: BTreeMap::new(),
-            remote_views: BTreeMap::new(),
-            git_refs: BTreeMap::new(),
-            git_head: RefTarget::absent(),
-            wc_commit_ids: BTreeMap::new(),
-        }),
+        view: View::new(
+            jj_lib::op_store::View {
+                head_ids: visible_heads,
+                local_bookmarks: BTreeMap::new(),
+                local_tags: BTreeMap::new(),
+                remote_views: BTreeMap::new(),
+                git_refs: BTreeMap::new(),
+                git_heads: BTreeMap::new(),
+                wc_commit_ids: BTreeMap::new(),
+            },
+            true,
+        ),
     };
 
     let mut diagnostics = RevsetDiagnostics::new();
@@ -290,6 +293,10 @@ fn resolve_user_expressions(
         RevsetExpression::ForkPoint(expression) => {
             let expression = resolve_user_expressions(expression, operation, reference_map);
             RevsetExpression::ForkPoint(expression)
+        }
+        RevsetExpression::MergePoint(expression) => {
+            let expression = resolve_user_expressions(expression, operation, reference_map);
+            RevsetExpression::MergePoint(expression)
         }
         RevsetExpression::Bisect(expression) => {
             let expression = resolve_user_expressions(expression, operation, reference_map);
@@ -526,7 +533,7 @@ impl Backend for DummyBackend {
         unimplemented!()
     }
 
-    fn gc(&self, _index: &dyn Index, _keep_newer: std::time::SystemTime) -> BackendResult<()> {
+    async fn gc(&self, _heads: &[CommitId], _keep_newer: SystemTime) -> BackendResult<()> {
         unimplemented!()
     }
 }
@@ -537,6 +544,7 @@ struct DummyRepo {
     store: Arc<Store>,
 }
 
+#[async_trait(?Send)]
 impl Repo for DummyRepo {
     fn base_repo(&self) -> &ReadonlyRepo {
         unimplemented!()
@@ -562,14 +570,14 @@ impl Repo for DummyRepo {
         unimplemented!()
     }
 
-    fn resolve_change_id_prefix(
+    async fn resolve_change_id_prefix(
         &self,
         _prefix: &HexPrefix,
     ) -> IndexResult<PrefixResolution<ResolvedChangeTargets>> {
         unimplemented!()
     }
 
-    fn shortest_unique_change_id_prefix_len(
+    async fn shortest_unique_change_id_prefix_len(
         &self,
         _target_id_bytes: &ChangeId,
     ) -> IndexResult<usize> {

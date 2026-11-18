@@ -4,7 +4,6 @@ use std::path::Path;
 use std::path::PathBuf;
 
 use anyhow::Context;
-use chrono::TimeZone as _;
 use clap::CommandFactory;
 use clap::Parser as _;
 use clap::builder::Styles;
@@ -19,12 +18,12 @@ use jj_cli::config::default_config_layers;
 use jj_cli::config::default_config_migrations;
 use jj_cli::ui::Ui;
 use jj_lib::ref_name::WorkspaceName;
-use jj_lib::repo_path::RepoPathUiConverter;
 use jj_lib::revset::RevsetAliasesMap;
 use jj_lib::revset::RevsetExtensions;
 use jj_lib::revset::RevsetParseContext;
 use jj_lib::revset::RevsetWorkspaceContext;
 use jj_lib::settings::UserSettings;
+use jj_lib::ui_path::RepoPathUiConverter;
 use jj_lib::workspace::DefaultWorkspaceLoaderFactory;
 use jj_lib::workspace::WorkspaceLoaderFactory as _;
 
@@ -192,11 +191,9 @@ fn main() -> anyhow::Result<()> {
         workspace_name: WorkspaceName::DEFAULT,
     };
     let now = if let Some(timestamp) = settings.commit_timestamp() {
-        chrono::Local
-            .timestamp_millis_opt(timestamp.timestamp.0)
-            .unwrap()
+        timestamp.to_zoned().context("Invalid commit timestamp")?
     } else {
-        chrono::Local::now()
+        jiff::Zoned::now()
     };
     let fileset_aliases_map =
         cli_util::load_fileset_aliases(&ui, settings.config()).map_err(|err| err.error)?;
@@ -228,7 +225,7 @@ fn main() -> anyhow::Result<()> {
         aliases_map: &revset_aliases_map,
         local_variables: HashMap::new(),
         user_email: "<user-email>",
-        date_pattern_context: now.into(),
+        current_time: now,
         default_ignored_remote: None,
         fileset_aliases_map: &fileset_aliases_map,
         extensions: &RevsetExtensions::new(),
@@ -247,6 +244,7 @@ fn main() -> anyhow::Result<()> {
 fn load_settings(workspace_dir: &Path, load_user_config: bool) -> anyhow::Result<UserSettings> {
     let mut raw_config = config_from_environment(default_config_layers());
     let mut config_env = ConfigEnv::from_environment();
+    let home_dir = config_env.home_dir().map(|dir| dir.to_owned());
     if load_user_config {
         config_env
             .reload_user_config(&mut raw_config)
@@ -270,6 +268,6 @@ fn load_settings(workspace_dir: &Path, load_user_config: bool) -> anyhow::Result
     jj_lib::config::migrate(&mut config, &default_config_migrations())
         .context("Failed to apply config migrations")?;
 
-    let settings = UserSettings::from_config(config)?;
+    let settings = UserSettings::from_config_and_home_dir(config, home_dir)?;
     Ok(settings)
 }

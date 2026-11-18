@@ -330,6 +330,10 @@ pub enum Expr<'a> {
         heads: Box<Self>,
     },
     ForkPoint(Box<Self>),
+    MergePoint {
+        roots: Box<Self>,
+        visible_heads: Box<Self>,
+    },
     Bisect(Box<Self>),
     HasSize {
         candidates: Box<Self>,
@@ -440,6 +444,13 @@ impl<'a> Expr<'a> {
                 heads: parse(*heads),
             },
             ResolvedExpression::ForkPoint(expr) => Self::ForkPoint(parse(*expr)),
+            ResolvedExpression::MergePoint {
+                roots,
+                visible_heads,
+            } => Self::MergePoint {
+                roots: parse(*roots),
+                visible_heads: parse(*visible_heads),
+            },
             ResolvedExpression::Bisect(expr) => Self::Bisect(parse(*expr)),
             ResolvedExpression::HasSize { candidates, count } => Self::HasSize {
                 candidates: parse(*candidates),
@@ -691,6 +702,25 @@ impl AnalyzeTree for Expr<'_> {
                     context: AnalyzeContext::Eager,
                     tree: expr.as_ref(),
                 }],
+            },
+            Self::MergePoint {
+                roots,
+                visible_heads,
+            } => TreeEntry {
+                name: "MergePoint".into(),
+                context: AnalyzeContext::Eager,
+                children: vec![
+                    Child {
+                        label: Some("roots".into()),
+                        context: AnalyzeContext::Eager,
+                        tree: roots.as_ref(),
+                    },
+                    Child {
+                        label: Some("visible_heads".into()),
+                        context: AnalyzeContext::Eager,
+                        tree: visible_heads.as_ref(),
+                    },
+                ],
             },
             Self::Bisect(expr) => TreeEntry {
                 name: "Bisect".into(),

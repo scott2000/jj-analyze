@@ -111,11 +111,11 @@ pub fn format_file_pattern(pattern: &FilePattern) -> String {
         FilePattern::FilePath(path) => format!("file:{:?}", path.as_internal_file_string()),
         FilePattern::PrefixPath(path) => format!("{:?}", path.as_internal_file_string().to_owned()),
         FilePattern::FileGlob { dir, pattern } => {
-            format!("glob:{:?}", dir.to_internal_dir_string() + pattern.glob())
+            format!("glob:{:?}", dir.to_internal_dir_string() + pattern.as_str())
         }
         FilePattern::PrefixGlob { dir, pattern } => format!(
             "prefix-glob:{:?}",
-            dir.to_internal_dir_string() + pattern.glob()
+            dir.to_internal_dir_string() + pattern.as_str()
         ),
     }
 }
@@ -150,17 +150,13 @@ pub fn format_date_pattern(pattern: &DatePattern) -> String {
         DatePattern::AtOrAfter(millis_since_epoch) => {
             format!(
                 "after:{}",
-                chrono::DateTime::from_timestamp_millis(millis_since_epoch.0)
-                    .expect("valid date-time")
-                    .to_rfc3339()
+                jiff::Timestamp::from_millisecond(millis_since_epoch.0).expect("valid date-time")
             )
         }
         DatePattern::Before(millis_since_epoch) => {
             format!(
                 "before:{}",
-                chrono::DateTime::from_timestamp_millis(millis_since_epoch.0)
-                    .expect("valid date-time")
-                    .to_rfc3339()
+                jiff::Timestamp::from_millisecond(millis_since_epoch.0).expect("valid date-time")
             )
         }
     }
